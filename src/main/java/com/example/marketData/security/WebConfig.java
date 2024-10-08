@@ -11,7 +11,7 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**") // Allow all endpoints
-                .allowedOrigins("http://localhost:5173") // Allow your frontend URL
+                .allowedOrigins("http://localhost:5173", "https://da8a-77-137-30-226.ngrok-free.app\n") // Allow frontend and ngrok
                 .allowedMethods("GET", "POST", "PUT", "DELETE") // Specify allowed methods
                 .allowedHeaders("*") // Allow any headers
                 .allowCredentials(true); // Allow credentials (like cookies or tokens)

@@ -1,22 +1,17 @@
 package com.example.marketData.security;
 
 import com.example.marketData.JwtRequestFilter;
-import com.example.marketData.MyUserDetailsService;
+import com.example.marketData.service.MyUserDetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.Customizer;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.NoOpPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
@@ -61,7 +56,8 @@ public class Security {
                                 authorizeRequests
 //                                .requestMatchers("/employee/all").permitAll()
                                         .requestMatchers("/login").permitAll()
-                                        .requestMatchers("/register","/optionsChain").permitAll()
+                                        .requestMatchers("/register").permitAll()
+                                        .requestMatchers("/api/**","/optionsChain").permitAll() // Allow all requests to /api/**
                                         .requestMatchers("/admin").hasAuthority("ADMIN") // Restrict /admin to users with ADMIN role
                                         .anyRequest().authenticated()
 

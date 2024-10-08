@@ -1,5 +1,7 @@
 package com.example.marketData;
 
+import com.example.marketData.service.JwtService;
+import com.example.marketData.service.MyUserDetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;

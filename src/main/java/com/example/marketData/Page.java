@@ -1,76 +1,73 @@
 package com.example.marketData;
 
-
+import com.example.marketData.service.JwtService;
+import com.example.marketData.service.MyUserDetailsService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.Map;
 
 @RestController
 @RequestMapping()
 public class Page {
 
-
     @Autowired
-    private  MyUserDetailsService userService;
-
+    private MyUserDetailsService userService;
     @Autowired
     private JwtService jwtService;
+
+
 
     public Page(MyUserDetailsService userService, JwtService jwtService) {
         this.userService = userService;
         this.jwtService = jwtService;
     }
 
-
-
-
-
-
-    public static final String API_KEY="4xvJJIOpabCyR0wwwFLpPoQ4aDmMplbx";
-
-
-
-
-
+    public static final String API_KEY = "4xvJJIOpabCyR0wwwFLpPoQ4aDmMplbx";
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Map<String, String> body) {
+        System.out.println("invoke 'login' in class 'Page'");
         String email = body.get("email");
         String password = body.get("password");
+        System.out.println("Login request received: email=" + email + ", password=" + password);
+
         boolean isAuthenticated = userService.check(email, password);
+        System.out.println("User authentication result: " + isAuthenticated);
 
         if (isAuthenticated) {
-            // Generate JWT token
             final String jwtToken = jwtService.generateToken(userService.loadUserByUsername(email));
+            System.out.println("Generated JWT token: " + jwtToken);
 
-            // Retrieve the user and the API key
             MyUser user = this.userService.getUser(email);
             String apiKey = user.getApiKey();
+            System.out.println("User API Key: " + apiKey);
 
-            // Return both the JWT token and the API key in the response body
             return ResponseEntity.ok(Map.of("token", jwtToken, "apiKey", apiKey));
         } else {
+            System.out.println("Invalid login attempt for email: " + email);
             return ResponseEntity.status(401).body("Invalid credentials");
         }
     }
 
-
-
     @PostMapping("/register")
-    public boolean register(@RequestBody Map<String, String> body){
-        String email=body.get("email");
-        String password=body.get("password");
-        return this.userService.addUser(email,password);
+    public boolean register(@RequestBody Map<String, String> body) {
+        System.out.println("invoke 'register' in class 'Page'");
+        String email = body.get("email");
+        String password = body.get("password");
+        System.out.println("Register request received: email=" + email + ", password=" + password);
+
+        boolean isUserAdded = this.userService.addUser(email, password);
+        System.out.println("User registration result: " + isUserAdded);
+
+        return isUserAdded;
     }
 
     @GetMapping("/optionsChain")
@@ -85,16 +82,20 @@ public class Page {
             @RequestParam(value = "sort", required = false) String sort,
             @RequestParam(value = "apiKey", required = true) String apiKey
     ) throws JsonProcessingException {
+        System.out.println("invoke 'getOptions' in class 'Page'");
+        System.out.println("Request parameters: symbol=" + symbol + ", strike_price=" + strikePrice +
+                ", start_expiration_date=" + startExpirationDate + ", end_expiration_date=" + endExpirationDate +
+                ", contract_type=" + contractType + ", order=" + order + ", limit=" + limit + ", sort=" + sort + ", apiKey=" + apiKey);
 
-
-
-        if(this.userService.containApiKey(apiKey)){
-            apiKey=Page.API_KEY;
+        if (this.userService.containApiKey(apiKey)) {
+            System.out.println("API Key is valid, replacing with server-side API key.");
+            apiKey = Page.API_KEY;
+        } else {
+            System.out.println("Invalid API Key: " + apiKey);
         }
 
-        // Base URL
+        // Construct the URL
         String url = "https://api.polygon.io/v3/snapshot/options/" + symbol + "?";
-
         if (strikePrice != null && !strikePrice.isEmpty()) {
             url += "strike_price=" + strikePrice + "&";
         }
@@ -111,60 +112,47 @@ public class Page {
         if (order != null && !order.isEmpty()) {
             url += "order=" + order + "&";
         }
-
         url += "limit=" + limit + "&";
         if (sort != null && !sort.isEmpty()) {
             url += "sort=" + sort + "&";
         }
         url += "apikey=" + apiKey;
 
-        // Create a RestTemplate instance to send the GET request
+        System.out.println("Constructed URL: " + url);
 
         ResponseEntity<String> response = null;
-        JsonNode node=null;
+        JsonNode node = null;
 
         try {
             RestTemplate restTemplate = new RestTemplate();
-            response  = restTemplate.getForEntity(url, String.class);
-            node =new ObjectMapper().readTree(response.getBody());
-
-        }catch (HttpClientErrorException errorException){
-            System.out.println(errorException.getMessage());
-            node =new ObjectMapper().readTree(errorException.getMessage());
-
+            response = restTemplate.getForEntity(url, String.class);
+            node = new ObjectMapper().readTree(response.getBody());
+            System.out.println("Response from Polygon API: " + node.toString());
+        } catch (HttpClientErrorException errorException) {
+            System.out.println("Error occurred while calling Polygon API: " + errorException.getMessage());
+            node = new ObjectMapper().readTree(errorException.getMessage());
             return node;
         }
 
-        // Return the JSON response
         return node;
     }
 
-
-
     @PostMapping("/user")
-    public ResponseEntity<?> getUser( @RequestHeader("Authorization") String authorizationHeader) {
-        System.out.println("Authorization Header: " + authorizationHeader); // Debugging output
+    public ResponseEntity<?> getUser(@RequestHeader("Authorization") String authorizationHeader) {
+        System.out.println("invoke 'getUser' in class 'Page'");
+        System.out.println("Authorization Header: " + authorizationHeader);
 
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
             String token = authorizationHeader.substring(7);
-
-            // Debugging: print token to ensure correct token extraction
             System.out.println("Extracted Token: " + token);
+
             MyUser user = this.userService.getUser(jwtService.extractUsername(token));
+            System.out.println("User info: Email=" + user.getEmail() + ", API Key=" + user.getApiKey());
 
-            // Assuming jwtService.extractUsername(token) validates and extracts the username correctly
             return ResponseEntity.ok(Map.of("email", user.getEmail(), "apiKey", user.getApiKey()));
+        } else {
+            System.out.println("Invalid or missing Authorization header");
+            return ResponseEntity.badRequest().body("Invalid or missing Authorization header");
         }
-
-        // Return null or better, a proper error response
-        return (ResponseEntity<?>) ResponseEntity.badRequest();
-
     }
-
-
-
-
-    // OptionResponse class to structure the response data
-
-
 }
