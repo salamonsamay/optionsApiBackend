@@ -1,11 +1,15 @@
 package com.example.marketData.service;
 
+import com.example.marketData.repo.PayPalRepo;
+import com.example.marketData.PayPalTransaction;
 import com.paypal.api.payments.*;
 import com.paypal.base.rest.APIContext;
 import com.paypal.base.rest.PayPalRESTException;
 import jakarta.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -19,6 +23,10 @@ public class PayPalService {
     private String clientId = "ATREEzXHUfhyGhouBiK5fy_98oErWwkyAGhhbkWLGVySiPOoVTpCLDVcC-4_37Y5h6xfT4AI2M7a2CRc";
     private String clientSecret = "EGzCBd01TjLzZRH1tARoPTCzubN_OXIpTElO7X2jnKNOh81b2evPxOAiKz74JapPpXj_gCEH30bS1ehn";
     private String mode = "sandbox";
+
+
+    @Autowired
+    private PayPalRepo payPalRepo;
 
     @PostConstruct
     public void init() {
@@ -202,4 +210,52 @@ public class PayPalService {
 
         return sale.refund(apiContext, refundRequest);
     }
+
+    public PayPalTransaction save(Map<String, Object> paymentMap) {
+        System.out.println(paymentMap);
+        try {
+            // Extracting required fields from the paymentMap
+            String orderId = (String) paymentMap.get("id");
+
+            Map<String, Object> payer = (Map<String, Object>) paymentMap.get("payer");
+            if (payer == null) {
+                throw new IllegalArgumentException("Payer information is missing");
+            }
+
+            Map<String, Object> payerInfo = (Map<String, Object>) payer.get("payer_info");
+            if (payerInfo == null) {
+                throw new IllegalArgumentException("Payer info is missing");
+            }
+
+            String payerId = (String) payerInfo.get("payer_id");
+            String paymentStatus = (String) paymentMap.get("state");
+
+            List<Map<String, Object>> transactions = (List<Map<String, Object>>) paymentMap.get("transactions");
+            if (transactions == null || transactions.isEmpty()) {
+                throw new IllegalArgumentException("Transaction information is missing");
+            }
+
+            Map<String, Object> transaction = transactions.get(0);
+            String currency = (String) transaction.get("currency");
+            String amountString = (String) transaction.get("amount");
+            if (amountString == null) {
+                throw new IllegalArgumentException("Amount is missing");
+            }
+            Double amount = Double.valueOf(amountString);
+
+            String email = (String) payerInfo.get("email");
+            LocalDateTime createdAt = LocalDateTime.now();
+
+            // Create a new PayPalTransaction instance
+            PayPalTransaction payPalTransaction = new PayPalTransaction(orderId, payerId, paymentStatus, currency, amount, createdAt);
+
+            // Assuming you have a repository for PayPalTransaction
+            return this.payPalRepo.save(payPalTransaction);
+        } catch (ClassCastException e) {
+            throw new IllegalArgumentException("Invalid data type in payment map", e);
+        } catch (NullPointerException e) {
+            throw new IllegalArgumentException("Required field is missing in payment map", e);
+        }
+    }
+
 }

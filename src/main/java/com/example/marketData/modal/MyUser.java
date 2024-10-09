@@ -1,5 +1,6 @@
-package com.example.marketData;
+package com.example.marketData.modal;
 
+import com.example.marketData.ApiKeyGenerator;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import org.springframework.security.core.GrantedAuthority;
@@ -19,6 +20,8 @@ public class MyUser implements UserDetails {
 
     private boolean isPaid = false; // Default to false
     private LocalDate paymentExpirationDate; // When the payment will expire
+    private boolean enabled = false; // Set false by default until the user verifies email
+
 
     public MyUser() {
     }
@@ -27,6 +30,12 @@ public class MyUser implements UserDetails {
         this.email = email;
         this.password = password;
         this.apiKey = apiKey;
+    }
+
+    public MyUser(String email, String password) {
+        this.email = email;
+        this.password = password;
+        this.apiKey = ApiKeyGenerator.generateApiKey();
     }
 
     public String getEmail() {
@@ -119,5 +128,9 @@ public class MyUser implements UserDetails {
                 ", updateSubscribe=" + isPaid +
                 ", paymentExpirationDate=" + paymentExpirationDate +
                 '}';
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
     }
 }

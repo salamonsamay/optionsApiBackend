@@ -1,10 +1,14 @@
 package com.example.marketData.service;
 
 import com.example.marketData.ApiKeyGenerator;
-import com.example.marketData.MyUser;
-import com.example.marketData.UserRepo;
+import com.example.marketData.modal.MyUser;
+import com.example.marketData.modal.VerificationToken;
+import com.example.marketData.repo.UserRepo;
+import com.example.marketData.repo.VerificationTokenRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -12,14 +16,21 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.util.HashMap;
+import java.util.Date;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class MyUserDetailsService implements UserDetailsService {
 
     @Autowired
     private final UserRepo userRepo;
+
+    @Autowired
+    private VerificationTokenRepository tokenRepository;
+
+    @Autowired
+    private JavaMailSender mailSender;
 
     private final BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder(10);
 
@@ -42,6 +53,29 @@ public class MyUserDetailsService implements UserDetailsService {
         return user.orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
     }
 
+    public void registerUser(String email,String password) {
+        MyUser user=new MyUser(email,bCryptPasswordEncoder.encode(password));
+        userRepo.save(user);
+
+        String token = UUID.randomUUID().toString();
+        VerificationToken verificationToken = new VerificationToken();
+        verificationToken.setToken(token);
+        verificationToken.setUser(user);
+        verificationToken.setExpiryDate(new Date(System.currentTimeMillis() + 86400000)); // 24-hour expiry
+        tokenRepository.save(verificationToken);
+
+        sendVerificationEmail(user.getEmail(), token);
+    }
+
+    public void sendVerificationEmail(String email, String token) {
+        String verificationUrl = "http://localhost:8080/verification/verify?token=" + token;
+
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(email);
+        message.setSubject("Email Verification");
+        message.setText("To verify your email, click the link: " + verificationUrl);
+        mailSender.send(message);
+    }
     public boolean check(String email, String password) {
         System.out.println("invoke 'check' in class 'MyUserDetailsService'");
         System.out.println("Checking credentials for email: " + email);

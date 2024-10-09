@@ -1,4 +1,4 @@
-package com.example.marketData;
+package com.example.marketData.controller;
 
 import com.example.marketData.service.JwtService;
 import com.example.marketData.service.MyUserDetailsService;
@@ -41,6 +41,7 @@ public class PayPalController {
         try {
             System.out.println("Invoking 'confirmPayment'");
             Map<String, Object> paymentMap = payPalService.createPayment(orderId, payerId);
+            payPalService.save(paymentMap);
             userDetailsService.updateSubscribe(email,true);
             return new ResponseEntity<>(paymentMap, HttpStatus.OK);
         } catch (PayPalRESTException e) {

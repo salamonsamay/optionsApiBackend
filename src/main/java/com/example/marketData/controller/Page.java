@@ -1,5 +1,6 @@
-package com.example.marketData;
+package com.example.marketData.controller;
 
+import com.example.marketData.modal.MyUser;
 import com.example.marketData.service.JwtService;
 import com.example.marketData.service.MyUserDetailsService;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -11,7 +12,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.HashMap;
 import java.util.Map;
 
 @RestController
@@ -64,10 +64,10 @@ public class Page {
         String password = body.get("password");
         System.out.println("Register request received: email=" + email + ", password=" + password);
 
-        boolean isUserAdded = this.userService.addUser(email, password);
-        System.out.println("User registration result: " + isUserAdded);
+//        boolean isUserAdded = this.userService.addUser(email, password);
+        this.userService.registerUser(email,password);
 
-        return isUserAdded;
+        return true;
     }
 
     @GetMapping("/optionsChain")

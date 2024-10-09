@@ -1,4 +1,4 @@
-package com.example.marketData;
+package com.example.marketData.modal;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
