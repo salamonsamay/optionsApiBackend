@@ -1,14 +1,18 @@
 package com.example.marketData.service;
 
 import com.example.marketData.ApiKeyGenerator;
+import com.example.marketData.exeptions.IncorrectPasswordException;
 import com.example.marketData.modal.MyUser;
 import com.example.marketData.modal.VerificationToken;
 import com.example.marketData.repo.UserRepo;
 import com.example.marketData.repo.VerificationTokenRepository;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMailMessage;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -68,7 +72,7 @@ public class MyUserDetailsService implements UserDetailsService {
     }
 
     public void sendVerificationEmail(String email, String token) {
-        String verificationUrl = "http://localhost:8080/verification/verify?token=" + token;
+        String verificationUrl = "http://localhost:8080/user/verify?token=" + token;
 
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(email);
@@ -115,6 +119,38 @@ public class MyUserDetailsService implements UserDetailsService {
         }
     }
 
+    public void updateUser(MyUser newUser) throws UsernameNotFoundException{
+        Optional<MyUser> existUser=userRepo.findById(newUser.getEmail());
+        if(existUser.isPresent()){
+            existUser.get().setApiKey(newUser.getApiKey());
+            existUser.get().setEnabled(newUser.isEnabled());
+            existUser.get().setPaid(newUser.isPaid());
+            existUser.get().setPassword(newUser.getPassword());
+            existUser.get().setPaymentExpirationDate(newUser.getPaymentExpirationDate());
+
+        }
+        throw new UsernameNotFoundException("user not found");
+
+    }
+
+    public void changePassword(String email, String oldPassword, String newPassword) {
+        Optional<MyUser> optionalUser = userRepo.findById(email);
+
+        if (optionalUser.isEmpty()) {
+            throw new UsernameNotFoundException("User not found with email: " + email);
+        }
+
+        MyUser user = optionalUser.get();
+
+        // Check if the old password matches the stored password
+        if (!bCryptPasswordEncoder.matches(oldPassword, user.getPassword())) {
+            throw new IncorrectPasswordException("Old password does not match.");
+        }
+
+        // If everything is fine, update the password
+        user.setPassword(bCryptPasswordEncoder.encode(newPassword));
+        userRepo.save(user); // Save the updated user back to the repository
+    }
     public MyUser getUser(String email) {
         System.out.println("invoke 'getUser' in class 'MyUserDetailsService'");
         System.out.println("Fetching user with email: " + email);
@@ -173,6 +209,11 @@ public class MyUserDetailsService implements UserDetailsService {
        user.get().setPaid(b);
        user.get().setPaymentExpirationDate(LocalDate.now().plusMonths(1));
        userRepo.save(user.get());
+
+    }
+
+    public void forgotPassword(String email) throws MessagingException {
+
 
     }
 }
