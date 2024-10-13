@@ -63,7 +63,7 @@ public class UserController {
         VerificationToken verificationToken=verificationTokenService.generateToken( email);
 
         // Send email with reset link
-        String resetUrl = "http://localhost:8080/user/resetPasswordForm?token=" + verificationToken.getToken();
+        String resetUrl = "http://optionsapi.dev:8080/user/resetPasswordForm?token=" + verificationToken.getToken();
         sendResetEmail(user.getEmail(), resetUrl);
 
         return ResponseEntity.ok("Password reset email sent.");

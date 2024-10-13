@@ -72,7 +72,7 @@ public class MyUserDetailsService implements UserDetailsService {
     }
 
     public void sendVerificationEmail(String email, String token) {
-        String verificationUrl = "http://localhost:8080/user/verify?token=" + token;
+        String verificationUrl = "https://optionsapi.dev:8080/user/verify?token=" + token;
 
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(email);
