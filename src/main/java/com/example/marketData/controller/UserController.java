@@ -8,6 +8,8 @@ import com.example.marketData.service.JwtService;
 import com.example.marketData.service.MyUserDetailsService;
 import com.example.marketData.service.VerificationTokenService;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -17,8 +19,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Date;
+import java.util.Map;
 
-@Controller
+@RestController
 @RequestMapping("/user")
 public class UserController {
 
@@ -98,21 +101,72 @@ public class UserController {
     }
 
 
-    @PutMapping("/changePassword")
+    @PostMapping("/changePassword")
     public ResponseEntity<?> changePassword(
             @RequestHeader("Authorization") String authorizationHeader,
-            @RequestParam("oldPassword") String oldPassword,
-            @RequestParam("newPassword") String newPassword){
+            @RequestBody Map<String, String> body) {
 
-        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
-            String token = authorizationHeader.substring(7);
-            String email=jwtService.extractUsername(token);
-            myUserDetailsService.changePassword(email,oldPassword,newPassword);
-            return ResponseEntity.ok("Password changed successfully.");
+        System.out.println("invoke changePassword method");
+
+        String oldPassword = body.get("password");
+        String newPassword = body.get("newPassword");
+
+        if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(401).body("Unauthorized.");
         }
-        return  ResponseEntity.status(401).body("Unauthorized.");
+
+        String token = authorizationHeader.substring(7);
+        String email;
+
+        try {
+            email = jwtService.extractUsername(token);
+        } catch (Exception e) {
+            return ResponseEntity.status(401).body("Invalid or expired token.");
+        }
+
+        if (oldPassword == null || oldPassword.isEmpty() || newPassword == null || newPassword.isEmpty()) {
+            return ResponseEntity.badRequest().body("Password fields cannot be empty.");
+        }
+
+        if (!myUserDetailsService.verifyPassword(email, oldPassword)) {
+            return ResponseEntity.status(400).body("Old password is incorrect.");
+        }
+
+        if (!myUserDetailsService.isValidPassword(newPassword)) {
+            return ResponseEntity.badRequest().body("New password does not meet security requirements.");
+        }
+
+        if (myUserDetailsService.isSamePassword(email, newPassword)) {
+            return ResponseEntity.status(400).body("New password cannot be the same as the old password.");
+        }
+
+        myUserDetailsService.changePassword(email, oldPassword, newPassword);
+        return ResponseEntity.ok("Password changed successfully.");
     }
 
+
+
+
+    @GetMapping("/data")
+    public ResponseEntity<?> getUser(@RequestHeader("Authorization") String authorizationHeader ) {
+        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+            String token = authorizationHeader.substring(7);
+            String email = jwtService.extractUsername(token);
+
+            MyUser user = myUserDetailsService.getUser(email);
+
+            if (user != null) {
+                return ResponseEntity.ok(user);
+            } else {
+                // Return 404 if user does not exist
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body("User not found");
+            }
+        }
+        // Return 400 Bad Request if the Authorization header is missing or incorrect
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body("Invalid Authorization header");
+    }
 
 
 }

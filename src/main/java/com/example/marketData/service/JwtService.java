@@ -101,4 +101,11 @@ public class JwtService {
         String sampleToken = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJzYWxhMDk4NkBnbWFpbC5jb20iLCJpYXQiOjE3MjgyMTQyNzgsImV4cCI6MTcyODI1MDI3OH0.ygFDynSmpLgJGZNm2C_kmP_oP2eioC52DjuxwNbVDic";
         System.out.println("Extracted Username: " + jwtService.extractUsername(sampleToken));
     }
+
+    public String extractToken(String authorizationHeader){
+        if(authorizationHeader != null && authorizationHeader.startsWith("Bearer ")){
+            return authorizationHeader.substring(7);
+        }
+        return null;
+    }
 }

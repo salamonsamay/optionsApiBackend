@@ -18,7 +18,7 @@ public class MyUser implements UserDetails {
     private String apiKey;
 
 
-    private boolean isPaid = false; // Default to false
+    private boolean isSubscribe = false; // Default to false
     private LocalDate paymentExpirationDate; // When the payment will expire
     private boolean enabled = false; // Set false by default until the user verifies email
 
@@ -93,17 +93,17 @@ public class MyUser implements UserDetails {
     }
 
     // New methods for payment status
-    public boolean isPaid() {
+    public boolean isSubscribe() {
         // Check if the payment status is still valid
-        if (isPaid && paymentExpirationDate != null) {
+        if (isSubscribe && paymentExpirationDate != null) {
             return !LocalDate.now().isAfter(paymentExpirationDate);
         }
         return false;
     }
 
-    public void setPaid(boolean paid) {
-        this.isPaid = paid;
-        if (paid) {
+    public void setSubscribe(boolean subscribe) {
+        this.isSubscribe = subscribe;
+        if (subscribe) {
             // Set the expiration date to 30 days from now
             this.paymentExpirationDate = LocalDate.now().plusDays(30);
         } else {
@@ -125,7 +125,7 @@ public class MyUser implements UserDetails {
                 "email='" + email + '\'' +
                 ", password='" + password + '\'' +
                 ", apiKey='" + apiKey + '\'' +
-                ", updateSubscribe=" + isPaid +
+                ", updateSubscribe=" + isSubscribe +
                 ", paymentExpirationDate=" + paymentExpirationDate +
                 '}';
     }

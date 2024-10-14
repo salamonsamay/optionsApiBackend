@@ -7,6 +7,7 @@ import com.paypal.base.rest.APIContext;
 import com.paypal.base.rest.PayPalRESTException;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -18,20 +19,27 @@ import java.util.Map;
 @Service
 public class PayPalService {
 
+    @Value("${paypal.client.id}")
+    private String clientId;
+    @Value("${paypal.client.secret}")
+    private String clientSecret;
+
+    @Value("${paypal.mode}")
+    private String mode;
+
     private APIContext apiContext;
 
-    private String clientId = "ATREEzXHUfhyGhouBiK5fy_98oErWwkyAGhhbkWLGVySiPOoVTpCLDVcC-4_37Y5h6xfT4AI2M7a2CRc";
-    private String clientSecret = "EGzCBd01TjLzZRH1tARoPTCzubN_OXIpTElO7X2jnKNOh81b2evPxOAiKz74JapPpXj_gCEH30bS1ehn";
-    private String mode = "sandbox";
+    @PostConstruct
+    public void init() {
+        // Initialize the APIContext after the values are injected
+        apiContext = new APIContext(clientId, clientSecret, mode);
+    }
 
 
     @Autowired
     private PayPalRepo payPalRepo;
 
-    @PostConstruct
-    public void init() {
-        apiContext = new APIContext(clientId, clientSecret, mode);
-    }
+
 
     public Map<String, Object> createPayment(String orderId, String payerId) throws PayPalRESTException {
         Amount amount = new Amount();

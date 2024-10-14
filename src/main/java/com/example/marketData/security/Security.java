@@ -56,8 +56,10 @@ public class Security {
                                 authorizeRequests
 //                                .requestMatchers("/employee/all").permitAll()
                                         .requestMatchers("/login").permitAll()
-                                        .requestMatchers("/register").permitAll()
-                                        .requestMatchers("/api/**","/optionsChain").permitAll() // Allow all requests to /api/**
+                                        .requestMatchers("/register","/user/**").permitAll()
+                                        .requestMatchers("/api/**","/optionsChain"
+                                        )
+                                        .permitAll() // Allow all requests to /api/**
                                         .requestMatchers("/admin").hasAuthority("ADMIN") // Restrict /admin to users with ADMIN role
                                         .anyRequest().authenticated()
 

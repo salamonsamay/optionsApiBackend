@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.HashMap;
 import java.util.Map;
 
 @RestController
@@ -23,7 +24,7 @@ public class Page {
     @Autowired
     private JwtService jwtService;
 
-
+//    private HashMap<String,JsonNode>  request;
 
     public Page(MyUserDetailsService userService, JwtService jwtService) {
         this.userService = userService;
@@ -50,7 +51,7 @@ public class Page {
             String apiKey = user.getApiKey();
             System.out.println("User API Key: " + apiKey);
 
-            return ResponseEntity.ok(Map.of("token", jwtToken, "apiKey", apiKey));
+            return ResponseEntity.ok(Map.of("token", jwtToken, "apiKey", apiKey,"isSubscribe",user.isSubscribe()));
         } else {
             System.out.println("Invalid login attempt for email: " + email);
             return ResponseEntity.status(401).body("Invalid credentials");
@@ -155,4 +156,17 @@ public class Page {
             return ResponseEntity.badRequest().body("Invalid or missing Authorization header");
         }
     }
+
+
+
+//    @GetMapping("/price")
+//    public String getPrice(@RequestHeader("Authorization") String authorizationHeader){
+//         String token= jwtService.extractToken(authorizationHeader);
+//         MyUser user=userService.getUser(jwtService.extractUsername(token));
+//         if(user.isPaid()){
+//             return
+//         }
+//
+//
+//    }
 }
