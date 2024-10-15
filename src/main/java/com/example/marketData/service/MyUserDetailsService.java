@@ -2,8 +2,8 @@ package com.example.marketData.service;
 
 import com.example.marketData.ApiKeyGenerator;
 import com.example.marketData.exeptions.IncorrectPasswordException;
-import com.example.marketData.modal.MyUser;
-import com.example.marketData.modal.VerificationToken;
+import com.example.marketData.model.MyUser;
+import com.example.marketData.model.VerificationToken;
 import com.example.marketData.repo.UserRepo;
 import com.example.marketData.repo.VerificationTokenRepository;
 import jakarta.mail.MessagingException;
@@ -23,6 +23,8 @@ import java.util.*;
 
 @Service
 public class MyUserDetailsService implements UserDetailsService {
+
+
 
     @Autowired
     private final UserRepo userRepo;
@@ -234,7 +236,6 @@ public class MyUserDetailsService implements UserDetailsService {
         user.get().setSubscribe(b);
         user.get().setPaymentExpirationDate(LocalDate.now().plusMonths(1));
         userRepo.save(user.get());
-
     }
 
     public void forgotPassword(String email) throws MessagingException {

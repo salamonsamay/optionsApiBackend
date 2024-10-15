@@ -1,4 +1,4 @@
-package com.example.marketData.modal;
+package com.example.marketData.model;
 
 import com.example.marketData.ApiKeyGenerator;
 import jakarta.persistence.Entity;

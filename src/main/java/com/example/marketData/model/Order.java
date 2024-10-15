@@ -1,6 +1,5 @@
-package com.example.marketData.modal;
+package com.example.marketData.model;
 
-import com.example.marketData.modal.Customer;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;

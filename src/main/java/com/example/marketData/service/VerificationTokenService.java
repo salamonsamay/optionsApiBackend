@@ -1,7 +1,7 @@
 package com.example.marketData.service;
 
-import com.example.marketData.modal.MyUser;
-import com.example.marketData.modal.VerificationToken;
+import com.example.marketData.model.MyUser;
+import com.example.marketData.model.VerificationToken;
 import com.example.marketData.repo.UserRepo;
 import com.example.marketData.repo.VerificationTokenRepository;
 import org.springframework.beans.factory.annotation.Autowired;

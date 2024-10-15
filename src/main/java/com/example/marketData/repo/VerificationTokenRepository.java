@@ -1,6 +1,6 @@
 package com.example.marketData.repo;
 
-import com.example.marketData.modal.VerificationToken;
+import com.example.marketData.model.VerificationToken;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface VerificationTokenRepository extends JpaRepository<VerificationToken, Long> {
