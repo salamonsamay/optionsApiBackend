@@ -139,6 +139,7 @@ public class UserController {
         }
 
         myUserDetailsService.changePassword(email, oldPassword, newPassword);
+        System.out.println("Password changed successfully.");
         return ResponseEntity.ok("Password changed successfully.");
     }
 
